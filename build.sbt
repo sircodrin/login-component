@@ -1,4 +1,4 @@
-name := """login-component"""
+name := "login-component"
 organization := "dot.com"
 
 version := "1.0-SNAPSHOT"
