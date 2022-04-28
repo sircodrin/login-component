@@ -1,9 +1,9 @@
 package dot.cpp.login.models.user.entity;
 
 import dev.morphia.annotations.Entity;
+import dot.cpp.login.enums.UserRole;
 import dot.cpp.repository.constants.Patterns;
 import dot.cpp.repository.models.BaseEntity;
-import dot.cpp.login.enums.UserRole;
 import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
