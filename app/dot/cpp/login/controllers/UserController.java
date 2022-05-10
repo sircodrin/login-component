@@ -33,13 +33,14 @@ public class UserController extends Controller {
   }
 
   public Result send() {
+    logger.error("hi man");
     Email email =
         new Email()
             .setSubject("WaW")
             .setFrom("Mister Waw <alshopcontact@gmail.com>")
             .addTo("Drew <andrewtookay@gmail.com>")
             .setBodyText("A WaW text message");
-    mailerClient.send(email);
+    //    mailerClient.send(email);
 
     return ok("Sent");
   }
