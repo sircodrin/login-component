@@ -9,7 +9,10 @@ import dot.cpp.login.service.LoginService;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import play.libs.mailer.Email;
+import play.libs.mailer.MailerClient;
 import play.mvc.Controller;
+import play.mvc.Http.Request;
 import play.mvc.Result;
 
 public class UserController extends Controller {
@@ -20,10 +23,36 @@ public class UserController extends Controller {
   private final UserRepository userRepository;
   private final LoginService loginService;
 
+  private final MailerClient mailerClient;
+
   @Inject
-  public UserController(UserRepository user, LoginService loginService) {
+  public UserController(UserRepository user, LoginService loginService, MailerClient mailerClient) {
     this.userRepository = user;
     this.loginService = loginService;
+    this.mailerClient = mailerClient;
+  }
+
+  public Result send() {
+    Email email =
+        new Email()
+            .setSubject("WaW")
+            .setFrom("Mister Waw <alshopcontact@gmail.com>")
+            .addTo("Drew <andrewtookay@gmail.com>")
+            .setBodyText("A WaW text message");
+    mailerClient.send(email);
+
+    return ok("Sent");
+  }
+
+  public Result register(Request request) {
+    try {
+      logger.debug("{}", request);
+      return ok("registered");
+
+    } catch (Exception e) {
+      logger.error("", e);
+      return badRequest("registration failed");
+    }
   }
 
   public Result login() {

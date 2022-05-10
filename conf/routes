@@ -3,8 +3,9 @@ GET     /get         dot.cpp.login.controllers.UserController.get(id: String)
 GET     /login         dot.cpp.login.controllers.UserController.login()
 GET     /find        dot.cpp.login.controllers.UserController.findByValue(field: String, value: String)
 GET     /save        dot.cpp.login.controllers.UserController.save()
-
+GET     /send        dot.cpp.login.controllers.UserController.send()
 GET     /init        dot.cpp.repository.controllers.InitController.init()
+POST    /register    dot.cpp.login.controllers.UserController.register(request: Request)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)
