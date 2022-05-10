@@ -13,9 +13,6 @@
     </encoder>
   </appender>
 
-  <appender name="ASYNCFILE" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="FILE" />
-  </appender>
 
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
@@ -23,16 +20,12 @@
     </encoder>
   </appender>
 
-  <appender name="ASYNCSTDOUT" class="ch.qos.logback.classic.AsyncAppender">
-    <appender-ref ref="STDOUT" />
-  </appender>
-
   <logger name="play" level="INFO"/>
   <logger name="dot.cpp" level="DEBUG"/>
 
   <root level="INFO">
-    <appender-ref ref="ASYNCSTDOUT"/>
-    <appender-ref ref="ASYNCFILE" />
+    <appender-ref ref="FILE"/>
+    <appender-ref ref="STDOUT" />
   </root>
 
 </configuration>
