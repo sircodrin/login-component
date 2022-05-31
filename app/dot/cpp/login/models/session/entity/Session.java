@@ -3,29 +3,24 @@ package dot.cpp.login.models.session.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.Gson;
 import dot.cpp.repository.models.BaseEntity;
+import org.bson.types.ObjectId;
 import play.mvc.Http;
 import play.mvc.Http.Cookie;
 
 public class Session extends BaseEntity {
 
   private String sessionId;
-  private String userId;
+  private ObjectId userId;
   private String sessionIp;
 
-  private Long expiryDate;
+  private Long refreshExpiryDate;
   private String userAgent;
   private String tokenType;
   private String accessToken;
   private String refreshToken;
-
-  private Long expiresIn;
   private Long createTime;
 
   @JsonIgnore private Cookie cookie;
-
-  public Session() {
-    this.expiresIn = 3600000L;
-  }
 
   /**
    * PerformedLogout.
@@ -33,7 +28,7 @@ public class Session extends BaseEntity {
    * @return boolean
    */
   public boolean performedLogout() {
-    return expiryDate == null || expiryDate == 0;
+    return refreshExpiryDate == null || refreshExpiryDate == 0;
   }
 
   /**
@@ -66,11 +61,11 @@ public class Session extends BaseEntity {
     this.sessionId = sessionId;
   }
 
-  public String getUserId() {
+  public ObjectId getUserId() {
     return userId;
   }
 
-  public void setUserId(String userId) {
+  public void setUserId(ObjectId userId) {
     this.userId = userId;
   }
 
@@ -80,14 +75,6 @@ public class Session extends BaseEntity {
 
   public void setSessionIp(String sessionIp) {
     this.sessionIp = sessionIp;
-  }
-
-  public Long getExpiryDate() {
-    return expiryDate;
-  }
-
-  public void setExpiryDate(Long expiryDate) {
-    this.expiryDate = expiryDate;
   }
 
   public String getUserAgent() {
@@ -122,23 +109,19 @@ public class Session extends BaseEntity {
     this.refreshToken = refreshToken;
   }
 
-  public Long getExpiresIn() {
-    return expiresIn;
-  }
-
-  public void setExpiresIn(Long expiresIn) {
-    this.expiresIn = expiresIn;
-  }
-
-  public Long getExpires() {
-    return createTime + expiresIn;
-  }
-
   public Long getCreateTime() {
     return createTime;
   }
 
   public void setCreateTime(Long createTime) {
     this.createTime = createTime;
+  }
+
+  public Long getRefreshExpiryDate() {
+    return refreshExpiryDate;
+  }
+
+  public void setRefreshExpiryDate(Long refreshExpiryDate) {
+    this.refreshExpiryDate = refreshExpiryDate;
   }
 }

@@ -1,19 +1,19 @@
-@import dot.cpp.login.models.user.request.SetPasswordRequest
 @import dot.cpp.login.views.html.main
 @import dot.cpp.repository.constants.Patterns
 @import play.mvc.Http.Request
+@import dot.cpp.login.models.user.request.AcceptInviteRequest
 @(
-        form: play.data.Form[SetPasswordRequest],
+        form: play.data.Form[AcceptInviteRequest],
         uuid: String
 )(implicit request: Request, messages: play.i18n.Messages)
 
-@main("Set admin password") {
+@main("Accept invite") {
     <div class="login">
         <div class="w-100 h-100 d-flex align-items-center justify-content-center">
             <div class="box">
 
                 <h1 class="title">Account Setup</h1>
-                <p class="subtitle">Please enter your new password.</p>
+                <p class="subtitle">Please provide your desired username and password.</p>
 
                 @* Flash shows updates to a page *@
                 @request.flash.asScala().data.map { case (name, value) =>
@@ -21,6 +21,13 @@
                 }
 
                 @helper.form(action = dot.cpp.login.controllers.routes.UserController.registerByInvite(uuid)) {
+                    <label>Choose Username</label>
+                    @helper.inputText(
+                        field = form("username"),
+                        Symbol("id") -> "username",
+                        Symbol("required") -> "required",
+                        Symbol("pattern") -> Patterns.NAME
+                    )
                     <label>Choose Password</label>
                     @helper.inputPassword(
                         field = form("password"),

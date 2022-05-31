@@ -1,15 +1,20 @@
 GET     /            dot.cpp.login.controllers.UserController.modifyUser(id: String)
 GET     /get         dot.cpp.login.controllers.UserController.get(id: String)
-GET     /login       dot.cpp.login.controllers.UserController.login()
 GET     /find        dot.cpp.login.controllers.UserController.findByValue(field: String, value: String)
 GET     /save        dot.cpp.login.controllers.UserController.save()
-GET     /send        dot.cpp.login.controllers.UserController.send()
 GET     /init        dot.cpp.repository.controllers.InitController.init()
 POST    /register    dot.cpp.login.controllers.UserController.register(request: Request)
 
-GET     /accept-invitation/:uuid                                                                dot.cpp.login.controllers.UserController.register(request: Request, uuid: String)
-POST    /accept-invitation/:uuid                                                                dot.cpp.login.controllers.UserController.register(request: Request, uuid: String)
+GET     /login       dot.cpp.login.controllers.UserController.loginPage(request: Request, userLoggedIn: Boolean ?= true)
+POST    /login       dot.cpp.login.controllers.UserController.login(request: Request)
 
+GET     /forgot-password       dot.cpp.login.controllers.UserController.forgotPasswordPage(request: Request)
+POST    /forgot-password       dot.cpp.login.controllers.UserController.forgotPassword(request: Request)
+
+GET     /invite-user    dot.cpp.login.controllers.UserController.inviteUserPage(request: Request)
+POST    /invite-user    dot.cpp.login.controllers.UserController.inviteUser(request: Request)
+GET     /accept-invite/:uuid    dot.cpp.login.controllers.UserController.registerByInvitePage(request: Request, uuid: String)
+POST    /accept-invite/:uuid    dot.cpp.login.controllers.UserController.registerByInvite(request: Request, uuid: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.versioned(path="/public", file: Asset)

@@ -1,15 +1,24 @@
 package dot.cpp.login.controllers;
 
+import dot.cpp.login.annotations.Authentication;
+import dot.cpp.login.constants.UserStatus;
 import dot.cpp.login.enums.UserRole;
 import dot.cpp.login.exceptions.LoginException;
 import dot.cpp.login.helpers.CookieHelper;
+import dot.cpp.login.models.session.entity.Session;
+import dot.cpp.login.models.session.repository.SessionRepository;
 import dot.cpp.login.models.user.entity.User;
 import dot.cpp.login.models.user.repository.UserRepository;
-import dot.cpp.login.models.user.request.SetPasswordRequest;
+import dot.cpp.login.models.user.request.AcceptInviteRequest;
+import dot.cpp.login.models.user.request.InviteUserRequest;
+import dot.cpp.login.models.user.request.LoginRequest;
 import dot.cpp.login.service.LoginService;
+import dot.cpp.login.service.RequestErrorService;
+import java.util.UUID;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import play.api.mvc.Call;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
 import play.libs.mailer.Email;
@@ -28,32 +37,39 @@ public class UserController extends Controller {
   private final MessagesApi messagesApi;
 
   private final UserRepository userRepository;
+  private final SessionRepository sessionRepository;
   private final LoginService loginService;
+  private final RequestErrorService requestErrorService;
 
   private final MailerClient mailerClient;
 
   @Inject
-  public UserController(UserRepository user, LoginService loginService,
-                        FormFactory formFactory, MessagesApi messagesApi,
-                        MailerClient mailerClient) {
+  public UserController(
+      UserRepository user,
+      LoginService loginService,
+      RequestErrorService requestErrorService,
+      FormFactory formFactory,
+      MessagesApi messagesApi,
+      SessionRepository sessionRepository,
+      MailerClient mailerClient) {
     this.userRepository = user;
     this.loginService = loginService;
     this.formFactory = formFactory;
     this.messagesApi = messagesApi;
+    this.sessionRepository = sessionRepository;
     this.mailerClient = mailerClient;
+    this.requestErrorService = requestErrorService;
   }
 
-  public Result send() {
-    logger.error("hi man");
+  public void sendInviteEmail(String emailAddress, String uuid) {
     Email email =
         new Email()
-            .setSubject("WaW")
-            .setFrom("Mister Waw <alshopcontact@gmail.com>")
-            .addTo("Drew <andrewtookay@gmail.com>")
-            .setBodyText("A WaW text message");
-    //    mailerClient.send(email);
+            .setSubject("WaW Invite")
+            .setFrom("Mister WaW <alshopcontact@gmail.com>")
+            .addTo(emailAddress)
+            .setBodyText("A WaW invitation: http://localhost:9000/accept-invite/" + uuid);
 
-    return ok("Sent");
+    mailerClient.send(email);
   }
 
   public Result register(Request request) {
@@ -67,12 +83,30 @@ public class UserController extends Controller {
     }
   }
 
-  public Result login() {
+  public Result loginPage(Http.Request request, boolean userLoggedIn) {
+    final var loginPage =
+        ok(
+            dot.cpp.login.views.html.login.render(
+                formFactory.form(LoginRequest.class), request, messagesApi.preferred(request)));
+    return userLoggedIn ? loginPage : CookieHelper.discardAuthorizationCookies(loginPage);
+  }
+
+  public Result login(Http.Request request) {
+    var form = formFactory.form(LoginRequest.class).bindFromRequest(request);
+
+    if (form.hasErrors()) {
+      requestErrorService.handleFormErrorWithRefresh(request, form); // todo
+    }
+
     try {
-      var session = loginService.login("john", "liquidDnb!1");
+      final var loginRequest = form.get();
+      logger.debug("{}", request);
+      final String clientIp = request.remoteAddress();
+      logger.debug("{}", clientIp);
+      final var session =
+          loginService.login(loginRequest.getUsername(), loginRequest.getPassword(), clientIp);
       logger.debug("{}", session);
       return ok(session.toString()).withCookies(CookieHelper.getAccessCookie(session));
-
     } catch (LoginException e) {
       logger.error("", e);
       return badRequest("bad");
@@ -86,11 +120,11 @@ public class UserController extends Controller {
 
   public Result save() {
     final User user = new User();
-    user.setId("asda1");
     user.setEmail("none@yahoo.com");
     user.setUserName("john");
     user.setRole(UserRole.ADMIN);
     user.setPassword("liquidDnb!1");
+    user.setStatus(UserStatus.ACTIVE);
     userRepository.save(user);
     return ok(user.toString());
   }
@@ -103,69 +137,158 @@ public class UserController extends Controller {
     return ok(userRepository.findById(id, clazz).toString());
   }
 
+  @Authentication(redirectUrl = "/login", userRole = UserRole.ADMIN)
+  public Result inviteUserPage(Http.Request request) {
+    final var messages = messagesApi.preferred(request);
+    var form = formFactory.form(InviteUserRequest.class);
+    var accessCookie = request.getCookie("access_token");
+
+    if (accessCookie.isPresent()) {
+      var accessToken = accessCookie.get().value();
+      var session = sessionRepository.findByField("accessToken", accessToken, Session.class);
+      if (session != null) {
+        logger.debug("{}", session);
+        var user = userRepository.findById(session.getUserId().toString(), User.class);
+        if (user != null) {
+          logger.debug("{}", user);
+          if (user.getRole() == UserRole.ADMIN) {
+            return ok(dot.cpp.login.views.html.inviteUser.render(form, request, messages));
+          }
+        }
+      }
+    }
+
+    return redirect("sus-login");
+  }
+
+  @Authentication(redirectUrl = "/login", userRole = UserRole.ADMIN)
+  public Result inviteUser(Http.Request request) {
+    final var form = formFactory.form(InviteUserRequest.class).bindFromRequest(request);
+
+    if (form.hasErrors()) {
+      return requestErrorService.handleFormErrorWithRefresh(request, form);
+    }
+
+    var email = form.get().getEmail();
+    var user = new User();
+
+    user.setRole(UserRole.ADMIN);
+    user.setEmail(email);
+    user.setUserName("temporary");
+    user.setPassword("temporary");
+    user.setResetPasswordUuid(UUID.randomUUID().toString());
+    user.setStatus(UserStatus.INACTIVE);
+
+    userRepository.save(user);
+    logger.debug("{}", user);
+    sendInviteEmail(email, user.getResetPasswordUuid());
+
+    return ok("invited");
+  }
+
+  public Result forgotPasswordPage(Http.Request request) {
+    /*
+    final var messages = messagesApi.preferred(request);
+    final var form = formFactory.form(AcceptInviteRequest.class);
+    final var user = userRepository.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
+    logger.debug("{}", user);
+
+    if (user == null) {
+      Call call = new Call("GET", "/login", "");
+      return requestErrorService.handleGenericErrors(call, request);
+    }
+
+    return ok(
+        dot.cpp.login.views.html.acceptInvite.render(form, resetPasswordUuid, request, messages));
+     */
+    return ok("not ready");
+  }
+
+  public Result forgotPassword(Http.Request request) {
+    /*
+    final var messages = messagesApi.preferred(request);
+    final var form = formFactory.form(AcceptInviteRequest.class);
+    final var user = userRepository.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
+    logger.debug("{}", user);
+
+    if (user == null) {
+      Call call = new Call("GET", "/login", "");
+      return requestErrorService.handleGenericErrors(call, request);
+    }
+
+    return ok(
+        dot.cpp.login.views.html.acceptInvite.render(form, resetPasswordUuid, request, messages));
+     */
+    return ok("not ready");
+  }
+
   /**
    * Activate account page for admin.
    *
    * @param request implicit request, must contain body with password and repeat password
    * @return accept invitation page
    */
-  public Result acceptInvitationPage(Http.Request request, String resetPasswordUuid) {
-
+  public Result registerByInvitePage(Http.Request request, String resetPasswordUuid) {
     final var messages = messagesApi.preferred(request);
-    final var form = formFactory.form(SetPasswordRequest.class);
-    final var repoCtx = request.attrs().get(ForKidsAttributes.REPO_CONTEXT);
+    final var form = formFactory.form(AcceptInviteRequest.class);
+    final var user = userRepository.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
 
-    if (!userProfileManager.resetPasswordUuidIsValid(
-            repoCtx, resetPasswordUuid, ForKidsEntityType.ADMIN)) {
-      return redirect(getLoginPage())
-              .flashing("alert-danger", messages.apply("userProfile.passwordUuid.alreadyUsed"));
+    logger.debug("{}", user);
+
+    if (user == null) {
+      Call call = new Call("GET", "/login", "");
+      return requestErrorService.handleGenericErrors(call, request);
     }
 
     return ok(
-            dot.cpp.login.views.html.setPassword.render(
-                    form, resetPasswordUuid, request, messages));
+        dot.cpp.login.views.html.acceptInvite.render(form, resetPasswordUuid, request, messages));
   }
 
   /**
-   * Activates admin account.
+   * Activates account.
    *
    * @param request Request
    * @return accept invitation
    */
-  public Result acceptInvitation(Http.Request request, String resetPasswordUuid) {
+  public Result registerByInvite(Http.Request request, String resetPasswordUuid) {
     logger.debug("START");
     final var messages = messagesApi.preferred(request);
-    final var form = formFactory.form(SetPasswordRequest.class).bindFromRequest(request);
+    final var form = formFactory.form(AcceptInviteRequest.class).bindFromRequest(request);
 
     if (form.hasErrors()) {
-      return requestErrorHandlerService.handleFormErrorWithRefresh(request, form);
+      return requestErrorService.handleFormErrorWithRefresh(request, form);
     }
 
-    var setPasswordRequest = form.get();
-    logger.debug("setPasswordRequest: {}", setPasswordRequest);
+    var acceptInviteRequest = form.get();
+    logger.debug("setPasswordRequest: {}", acceptInviteRequest);
+    logger.debug("messages: {}", messages);
 
     try {
-      final var dbAdminProfile =
-              userProfileManager.acceptInvitation(
-                      setPasswordRequest, resetPasswordUuid, ForKidsEntityType.ADMIN);
-
-      final var session =
-              userProfileManager.login(
-                      request,
-                      dbAdminProfile.getEmail(),
-                      setPasswordRequest.getPassword(),
-                      UserProfileRole.ADMIN,
-                      ForKidsEntityType.ADMIN,
-                      ForKidsApplication.ADMIN);
-
-      return getSuccessfulResult(
-              routes.AwpDashboardController.dashboard(),
-              messages.apply("userProfile.newPasswordSuccess"))
-              .withCookies(
-                      CookieHelper.getAccessCookie(session, ForKidsApplication.ADMIN),
-                      CookieHelper.getRefreshCookie(session, ForKidsApplication.ADMIN));
-    } catch (ForKidsComponentException | AuthenticationException e) {
-      return requestErrorHandlerService.handleXaftException(getLoginPage(), request, e);
+      final var user = acceptInvitation(acceptInviteRequest, resetPasswordUuid);
+      final String clientIp = request.remoteAddress();
+      final var session = loginService.login(user.getUserName(), user.getPassword(), clientIp);
+      logger.debug("{}", session);
+      return ok(session.toString()).withCookies(CookieHelper.getAccessCookie(session));
+    } catch (Exception e) {
+      Call call = new Call("GET", "login", "");
+      return requestErrorService.handleGenericErrors(call, request);
     }
+  }
+
+  private User acceptInvitation(AcceptInviteRequest acceptInviteRequest, String resetPasswordUuid) {
+    logger.debug("{}", acceptInviteRequest);
+    logger.debug("{}", resetPasswordUuid);
+
+    final var user = userRepository.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
+
+    user.setPassword(acceptInviteRequest.getPassword());
+    user.setUserName(acceptInviteRequest.getUsername());
+    user.setResetPasswordUuid("");
+    user.setStatus(UserStatus.ACTIVE);
+
+    logger.debug("{}", user);
+
+    userRepository.save(user);
+    return user;
   }
 }

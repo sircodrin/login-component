@@ -38,4 +38,14 @@ public class CookieHelper {
         .discardingCookie(Constants.ACCESS_TOKEN)
         .discardingCookie(Constants.REFRESH_TOKEN);
   }
+
+  public static String getCookieString(Http.Request request, String cookieName) {
+    final var cookie = request.getCookie(cookieName).orElse(null);
+
+    if (cookie == null) {
+      return null;
+    }
+
+    return cookie.value();
+  }
 }
