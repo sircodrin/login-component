@@ -2,8 +2,12 @@ package dot.cpp.login.constants;
 
 public enum Error {
   NOT_FOUND("Not found"),
-  INCORRECT_PASSWORD("Incorrect password");
-
+  INCORRECT_PASSWORD("Incorrect password"),
+  EXPIRED_ACCESS("Access token expired"),
+  USER_ROLE_MISMATCH("User does not have role"),
+  USER_EMAIL_NOT_FOUND("No user associated with the given email was found"),
+  ACCOUNT_INACTIVE("Account is inactive"),
+  SESSION_NOT_FOUND("Session not found");
   final String message;
 
   Error(String message) {

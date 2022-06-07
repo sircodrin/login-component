@@ -1,6 +1,7 @@
 package dot.cpp.login.models.user.entity;
 
 import dev.morphia.annotations.Entity;
+import dot.cpp.login.constants.UserStatus;
 import dot.cpp.login.enums.UserRole;
 import dot.cpp.repository.constants.Patterns;
 import dot.cpp.repository.models.BaseEntity;
@@ -21,6 +22,8 @@ public class User extends BaseEntity {
   @NotNull private UserRole role;
 
   private List<String> groups;
+
+  private UserStatus status;
 
   @NotNull
   @Pattern(regexp = Patterns.EMAIL, message = "constraints.field.invalid")
@@ -75,5 +78,17 @@ public class User extends BaseEntity {
 
   public void setResetPasswordUuid(String resetPasswordUuid) {
     this.resetPasswordUuid = resetPasswordUuid;
+  }
+
+  public UserStatus getStatus() {
+    return status;
+  }
+
+  public boolean isActive() {
+    return getStatus() == UserStatus.ACTIVE;
+  }
+
+  public void setStatus(UserStatus status) {
+    this.status = status;
   }
 }

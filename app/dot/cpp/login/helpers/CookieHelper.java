@@ -23,7 +23,7 @@ public class CookieHelper {
    * @param session {@link Session}
    * @return {@link Http.Cookie} the cookie containing authorization
    */
-  private static Http.Cookie getCookie(String cookieName, String session) {
+  public static Http.Cookie getCookie(String cookieName, String session) {
     return Http.Cookie.builder(cookieName, session).withHttpOnly(true).build();
   }
 
@@ -37,5 +37,15 @@ public class CookieHelper {
     return result
         .discardingCookie(Constants.ACCESS_TOKEN)
         .discardingCookie(Constants.REFRESH_TOKEN);
+  }
+
+  public static String getCookieString(Http.Request request, String cookieName) {
+    final var cookie = request.getCookie(cookieName).orElse(null);
+
+    if (cookie == null) {
+      return null;
+    }
+
+    return cookie.value();
   }
 }

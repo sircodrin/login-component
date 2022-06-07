@@ -1,8 +1,9 @@
 package dot.cpp.login.enums;
 
 public enum UserRole {
-  USER("USER"),
-  ADMIN("ADMIN");
+  USER("User"),
+  ADMIN("Admin"),
+  ALL("All");
 
   private final String value;
 

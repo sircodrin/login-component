@@ -1,0 +1,34 @@
+@import dot.cpp.login.views.html.main
+@import dot.cpp.login.models.user.request.LoginRequest
+@import dot.cpp.login.constants.Patterns
+@import play.mvc.Http.Request
+@(
+        form: play.data.Form[LoginRequest]
+)(implicit request: Request, messages: play.i18n.Messages)
+
+@main("Login") {
+    <div class="login">
+        <div class="w-100 h-100 d-flex align-items-center justify-content-center">
+            <div class="box">
+
+                <h1 class="title">Welcome to dot.cpp</h1>
+                <p class="subtitle">Management</p>
+
+                @helper.form(action = dot.cpp.login.controllers.routes.UserController.login()) {
+                    <label>Username</label>
+                    @helper.inputText(
+                        field = form("username"),
+                        Symbol("required") -> "required",
+                        Symbol("pattern") -> Patterns.NAME_OR_EMAIL)
+
+                    <label>Password</label>
+                    @helper.inputPassword(field = form("password"),
+                        Symbol("required") -> "required")
+                    <a href="@dot.cpp.login.controllers.routes.UserController.forgotPasswordPage()">
+                        Forgotten password?</a>
+                    <button class="cta" type="submit">Log In</button>
+                }
+            </div>
+        </div>
+    </div>
+}
