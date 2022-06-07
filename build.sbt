@@ -19,7 +19,8 @@ libraryDependencies ++= Seq(
   "it.unifi.cerm" %% "play-morphia" % "1.0",
   "io.jsonwebtoken" % "jjwt-api" % "0.11.5",
   "io.jsonwebtoken" % "jjwt-impl" % "0.11.5",
-  "io.jsonwebtoken" % "jjwt-gson" % "0.11.5"
+  "io.jsonwebtoken" % "jjwt-gson" % "0.11.5",
+  "com.password4j" % "password4j" % "1.5.4",
 )
 
 jcheckStyleConfig := "checkstyle-config.xml"

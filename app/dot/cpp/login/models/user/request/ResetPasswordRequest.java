@@ -8,7 +8,7 @@ import play.data.validation.Constraints.Validatable;
 import play.data.validation.Constraints.Validate;
 
 @Validate
-public class SetPasswordRequest implements Validatable<String> {
+public class ResetPasswordRequest implements Validatable<String> {
 
   @Pattern(value = Patterns.ALPHA_PASS_MIN8, message = "constraints.field.invalid")
   @Constraints.MinLength(value = 1, message = "constraints.field.invalid")

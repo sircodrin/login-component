@@ -74,20 +74,6 @@ public final class RequestErrorService {
         .collect(Collectors.joining("; "));
   }
 
-  /**
-   * Handle handleXaftException.
-   *
-   * @param call Call
-   * @param request Request
-   * @param exception XaftException
-   */
-  /*
-  public Result handleXaftException(Call call, Http.Request request, XaftException exception) {
-    var messages = messagesApi.preferred(request);
-    logger.error("ForKidsComponentException", exception);
-    return getResult(call, messages.apply(exception.getMessage()));
-  }
-  */
   private Result getResult(Call call, String message) {
     return redirect(call).flashing("alert-danger", message);
   }

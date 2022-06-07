@@ -23,7 +23,7 @@ public class CookieHelper {
    * @param session {@link Session}
    * @return {@link Http.Cookie} the cookie containing authorization
    */
-  private static Http.Cookie getCookie(String cookieName, String session) {
+  public static Http.Cookie getCookie(String cookieName, String session) {
     return Http.Cookie.builder(cookieName, session).withHttpOnly(true).build();
   }
 

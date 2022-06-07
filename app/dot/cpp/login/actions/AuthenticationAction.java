@@ -1,9 +1,11 @@
 package dot.cpp.login.actions;
 
 import dot.cpp.login.annotations.Authentication;
+import dot.cpp.login.attributes.GeneralAttributes;
 import dot.cpp.login.constants.Constants;
 import dot.cpp.login.constants.Patterns;
 import dot.cpp.login.exceptions.LoginException;
+import dot.cpp.login.exceptions.UserException;
 import dot.cpp.login.helpers.CookieHelper;
 import dot.cpp.login.models.session.entity.Session;
 import dot.cpp.login.service.LoginService;
@@ -61,10 +63,10 @@ public class AuthenticationAction extends Action<Authentication> {
     }
 
     try {
-      loginService.checkJwtAndUserRole(accessToken, configuration.userRole());
-      return delegate.call(request);
-    } catch (JwtException | LoginException e) {
-      logger.debug("{}", e.toString());
+      final String userId = loginService.authorizeRequest(accessToken, configuration.userRole());
+      return delegate.call(request.addAttr(GeneralAttributes.USER_ID, userId));
+    } catch (JwtException | LoginException | UserException e) {
+      logger.debug("{}", e.getMessage());
       return CompletableFuture.completedFuture(
           redirectWithError(messages, "general.session.expired"));
     }

@@ -84,6 +84,10 @@ public class User extends BaseEntity {
     return status;
   }
 
+  public boolean isActive() {
+    return getStatus() == UserStatus.ACTIVE;
+  }
+
   public void setStatus(UserStatus status) {
     this.status = status;
   }

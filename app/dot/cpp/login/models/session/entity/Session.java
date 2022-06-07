@@ -10,7 +10,7 @@ import play.mvc.Http.Cookie;
 public class Session extends BaseEntity {
 
   private String sessionId;
-  private ObjectId userId;
+  private String userId;
   private String sessionIp;
 
   private Long refreshExpiryDate;
@@ -61,11 +61,11 @@ public class Session extends BaseEntity {
     this.sessionId = sessionId;
   }
 
-  public ObjectId getUserId() {
+  public String getUserId() {
     return userId;
   }
 
-  public void setUserId(ObjectId userId) {
+  public void setUserId(String userId) {
     this.userId = userId;
   }
 
