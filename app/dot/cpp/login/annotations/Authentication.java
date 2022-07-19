@@ -15,5 +15,6 @@ public @interface Authentication {
 
   /** This parameter will redirect to the URL. */
   String redirectUrl();
+
   UserRole userRole();
 }

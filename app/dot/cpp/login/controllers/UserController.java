@@ -225,8 +225,9 @@ public class UserController extends Controller {
     try {
       final JsonObject tokens = loginService.refreshTokens(oldRefreshToken);
       logger.debug("{}", tokens);
-      return ok(tokens.toString()).withCookies(
-          getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
+      return ok(tokens.toString())
+          .withCookies(
+              getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
     } catch (ApplicationException e) {
       logger.error("{}", e.getMessage());
       Call call = new Call("GET", "/login", "");
@@ -278,8 +279,9 @@ public class UserController extends Controller {
       final var user = userService.acceptInvitation(acceptInviteRequest, resetPasswordUuid);
       final String clientIp = request.remoteAddress();
       final var tokens = loginService.login(user.getUserName(), user.getPassword(), clientIp);
-      return ok(tokens.toString()).withCookies(
-          getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
+      return ok(tokens.toString())
+          .withCookies(
+              getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
     } catch (Exception e) {
       logger.error(e.getMessage());
       Call call = new Call("GET", "login", "");
@@ -325,8 +327,9 @@ public class UserController extends Controller {
       final var user = userService.resetPassword(resetPasswordRequest, resetPasswordUuid);
       final String clientIp = request.remoteAddress();
       final var tokens = loginService.login(user.getUserName(), user.getPassword(), clientIp);
-      return ok(tokens.toString()).withCookies(
-          getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
+      return ok(tokens.toString())
+          .withCookies(
+              getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
     } catch (Exception e) {
       logger.error(e.getMessage());
       Call call = new Call("GET", "login", "");
