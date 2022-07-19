@@ -7,7 +7,6 @@ GET     /init        dot.cpp.repository.controllers.InitController.init()
 GET     /login       dot.cpp.login.controllers.UserController.loginPage(request: Request, userLoggedIn: Boolean ?= true)
 POST    /login       dot.cpp.login.controllers.UserController.login(request: Request)
 POST    /logout      dot.cpp.login.controllers.UserController.logout(request: Request)
-POST    /refresh-access     dot.cpp.login.controllers.UserController.refreshAccessToken(request: Request)
 
 GET     /forgot-password    dot.cpp.login.controllers.UserController.forgotPasswordPage(request: Request)
 POST    /forgot-password    dot.cpp.login.controllers.UserController.forgotPassword(request: Request)

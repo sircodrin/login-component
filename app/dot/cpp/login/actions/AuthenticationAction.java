@@ -1,5 +1,8 @@
 package dot.cpp.login.actions;
 
+import static dot.cpp.login.helpers.CookieHelper.getCookie;
+
+import com.google.gson.JsonObject;
 import dot.cpp.login.annotations.Authentication;
 import dot.cpp.login.attributes.GeneralAttributes;
 import dot.cpp.login.constants.Constants;
@@ -7,9 +10,7 @@ import dot.cpp.login.constants.Patterns;
 import dot.cpp.login.exceptions.LoginException;
 import dot.cpp.login.exceptions.UserException;
 import dot.cpp.login.helpers.CookieHelper;
-import dot.cpp.login.models.session.entity.Session;
 import dot.cpp.login.service.LoginService;
-import io.jsonwebtoken.JwtException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.inject.Inject;
@@ -25,7 +26,6 @@ import play.mvc.Result;
 public class AuthenticationAction extends Action<Authentication> {
 
   private static final Logger logger = LoggerFactory.getLogger(AuthenticationAction.class);
-  private static final String defaultRedirectUrl = "/login";
 
   @Inject private MessagesApi languageService;
   @Inject private LoginService loginService;
@@ -34,77 +34,71 @@ public class AuthenticationAction extends Action<Authentication> {
   public CompletionStage<Result> call(Request request) {
 
     final var messages = languageService.preferred(request);
-    // final var refreshToken = request.getCookie(Constants.REFRESH_TOKEN); // separate method
-    final var authCookie = CookieHelper.getCookieString(request, Constants.ACCESS_TOKEN);
+    final var accessToken = CookieHelper.getCookieString(request, Constants.ACCESS_TOKEN);
+    final var refreshToken = CookieHelper.getCookieString(request, Constants.REFRESH_TOKEN);
     final var authHeader = request.header(Http.HeaderNames.AUTHORIZATION).orElse("");
 
     logger.debug("Authentication");
     logger.debug("request: {}", request);
     logger.debug("authHeader: {}", authHeader);
-    logger.debug("authCookie: {}", authCookie);
+    logger.debug("accessToken: {}", accessToken);
+    logger.debug("refreshToken: {}", refreshToken);
 
-    String accessToken;
-
-    if (authHeader.equals("")) {
-      if (authCookie != null && authCookie.equals("")) {
-        logger.error("Missing authorization token");
-        return getResultInvalidToken(messages);
-      } else {
-        accessToken = authCookie;
-      }
-    } else {
-      accessToken = authHeader;
+    final var constructedAccessToken = constructToken(authHeader, accessToken);
+    if (isInvalidJwt(constructedAccessToken)) {
+      logger.warn("Token invalid {}", constructedAccessToken);
+      return statusIfPresentOrResult(redirect(configuration.redirectUrl()));
     }
-
-    logger.debug("{}", accessToken);
-    if (accessToken != null && !accessToken.matches(Patterns.JWT_TOKEN)) {
-      logger.error("Invalid authorization token");
-      return getResultInvalidToken(messages);
-    }
+    logger.debug("{}", constructedAccessToken);
 
     try {
       final String userId = loginService.authorizeRequest(accessToken, configuration.userRole());
       return delegate.call(request.addAttr(GeneralAttributes.USER_ID, userId));
-    } catch (JwtException | LoginException | UserException e) {
-      logger.debug("{}", e.getMessage());
-      return CompletableFuture.completedFuture(
-          redirectWithError(messages, "general.session.expired"));
+    } catch (LoginException | UserException e) {
+      try {
+        final JsonObject tokens = loginService.refreshTokens(refreshToken);
+        logger.debug("{}", tokens);
+        return getSuccessfulResult(tokens);
+      } catch (LoginException loginException) {
+        logger.debug("{}", e.getMessage());
+        return CompletableFuture.completedFuture(
+            redirectWithError(messages, "general.session.expired"));
+      }
     }
   }
 
-  private CompletableFuture<Result> getResultInvalidToken(Messages messages) {
-    if (configuration.redirectUrl().isEmpty()) {
-      return getResultIfRedirectUrlMissing(messages);
-    } else {
-      return CompletableFuture.completedFuture(redirect(configuration.redirectUrl()));
-    }
-  }
-
-  private CompletableFuture<Result> getResultIfRedirectUrlMissing(Messages messages) {
-    logger.warn("Missing redirect url so using default {}", defaultRedirectUrl);
+  private CompletableFuture<Result> getSuccessfulResult(JsonObject tokens) {
     return CompletableFuture.completedFuture(
-        redirectWithNoRedirectUrl(messages, defaultRedirectUrl));
+        ok().withCookies(
+                getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()),
+                getCookie(
+                    Constants.REFRESH_TOKEN, tokens.get(Constants.REFRESH_TOKEN).getAsString())));
   }
 
-  private CompletionStage<Result> getSuccessfulResult(Request request, Session session) {
-    logger.debug("session: {}", session.getSessionId());
-    logger.debug("session.userId: {}", session.getUserId());
+  private String constructToken(
+      final String headerAuthorization, final String cookieAuthorization) {
+    return isEmpty(headerAuthorization)
+        ? cookieAuthorization
+        : headerAuthorization.replace("Bearer", "").trim();
+  }
 
-    request = request.addAttr(Constants.SESSION, session); // is this required?
-    return delegate
-        .call(request)
-        .thenApply(
-            result ->
-                result.withCookies(
-                    CookieHelper.getAccessCookie(session), CookieHelper.getRefreshCookie(session)));
+  private boolean isInvalidJwt(String token) {
+    return token.matches(Patterns.JWT_TOKEN);
+  }
+
+  private CompletableFuture<Result> statusIfPresentOrResult(Result result) {
+    final var status = configuration.status();
+    if (status != -1) {
+      return CompletableFuture.completedFuture(status(status));
+    }
+    return CompletableFuture.completedFuture(result);
   }
 
   private Result redirectWithError(Messages messages, String key) {
     return redirect(configuration.redirectUrl()).flashing("alert-danger", messages.apply(key));
   }
 
-  private Result redirectWithNoRedirectUrl(Messages messages, String defaultRedirectUrl) {
-    return redirect(defaultRedirectUrl)
-        .flashing("alert-danger", messages.apply("general.application.error"));
+  private boolean isEmpty(String string) {
+    return string == null || string.isBlank();
   }
 }

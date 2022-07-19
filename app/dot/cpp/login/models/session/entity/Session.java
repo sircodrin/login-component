@@ -3,7 +3,6 @@ package dot.cpp.login.models.session.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.Gson;
 import dot.cpp.repository.models.BaseEntity;
-import org.bson.types.ObjectId;
 import play.mvc.Http;
 import play.mvc.Http.Cookie;
 

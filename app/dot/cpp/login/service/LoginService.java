@@ -120,12 +120,12 @@ public class LoginService {
     return userId;
   }
 
-  public JsonObject refreshTokens(String refreshToken) throws ApplicationException {
+  public JsonObject refreshTokens(String refreshToken) throws LoginException {
     final Session session =
         sessionRepository.findByField("refreshToken", refreshToken, Session.class);
 
     if (session == null) {
-      throw new ApplicationException(Error.SESSION_NOT_FOUND);
+      throw new LoginException(Error.SESSION_NOT_FOUND);
     }
 
     logger.debug("before Refresh {}", session);

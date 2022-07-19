@@ -2,7 +2,6 @@ package dot.cpp.login.controllers;
 
 import static dot.cpp.login.helpers.CookieHelper.getCookie;
 
-import com.google.gson.JsonObject;
 import dot.cpp.login.annotations.Authentication;
 import dot.cpp.login.attributes.GeneralAttributes;
 import dot.cpp.login.constants.Constants;
@@ -87,15 +86,6 @@ public class UserController extends Controller {
     mailerClient.send(email);
   }
 
-  public Result loginPage(Http.Request request, boolean userLoggedIn) {
-    final var loginPage =
-        ok(
-            dot.cpp.login.views.html.login.render(
-                formFactory.form(LoginRequest.class), request, messagesApi.preferred(request)));
-
-    return userLoggedIn ? loginPage : CookieHelper.discardAuthorizationCookies(loginPage);
-  }
-
   public Result login(Http.Request request) {
     var form = formFactory.form(LoginRequest.class).bindFromRequest(request);
 
@@ -145,7 +135,7 @@ public class UserController extends Controller {
     return ok(userService.findById(id, clazz).toString());
   }
 
-  @Authentication(redirectUrl = "/login", userRole = UserRole.ADMIN)
+  @Authentication(userRole = UserRole.ADMIN)
   public Result inviteUserPage(Http.Request request) {
     final var messages = messagesApi.preferred(request);
     var form = formFactory.form(InviteUserRequest.class);
@@ -153,7 +143,7 @@ public class UserController extends Controller {
     return ok(dot.cpp.login.views.html.inviteUser.render(form, request, messages));
   }
 
-  @Authentication(redirectUrl = "/login", userRole = UserRole.ADMIN)
+  @Authentication(userRole = UserRole.ADMIN)
   public Result inviteUser(Http.Request request) {
     final var form = formFactory.form(InviteUserRequest.class).bindFromRequest(request);
 
@@ -169,7 +159,7 @@ public class UserController extends Controller {
     return ok("invited");
   }
 
-  @Authentication(redirectUrl = "/login", userRole = UserRole.ALL)
+  @Authentication(userRole = UserRole.ALL)
   public Result logout(Http.Request request) {
     logger.debug("{}", request);
 
@@ -177,8 +167,7 @@ public class UserController extends Controller {
       loginService.logout(request.attrs().get(GeneralAttributes.USER_ID));
       return ok("logged out");
     } catch (ApplicationException e) {
-      Call call = new Call("GET", "/login", "");
-      return requestErrorService.handleGenericErrors(call, request);
+      return requestErrorService.handleGenericErrors(getLoginPage(), request);
     }
   }
 
@@ -201,38 +190,14 @@ public class UserController extends Controller {
       sendResetPasswordEmail(form.get().getEmail(), resetPasswordUuid);
     } catch (UserException e) {
       logger.error(e.getMessage());
-      Call call = new Call("GET", "/login", "");
-      return requestErrorService.handleGenericErrors(call, request);
+      return requestErrorService.handleGenericErrors(getLoginPage(), request);
     }
 
     return ok("password reset");
   }
 
-  public Result refreshAccessToken(Http.Request request) {
-    // todo check expired access token as well?
-    logger.debug("{}", request.body().asJson());
-
-    final var refreshTokenNode = request.body().asJson().get("refreshToken");
-
-    if (refreshTokenNode.isMissingNode()) {
-      Call call = new Call("GET", "/login", "");
-      return requestErrorService.handleGenericErrors(call, request);
-    }
-
-    final String oldRefreshToken = refreshTokenNode.asText();
-    logger.debug("{}", oldRefreshToken);
-
-    try {
-      final JsonObject tokens = loginService.refreshTokens(oldRefreshToken);
-      logger.debug("{}", tokens);
-      return ok(tokens.toString())
-          .withCookies(
-              getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
-    } catch (ApplicationException e) {
-      logger.error("{}", e.getMessage());
-      Call call = new Call("GET", "/login", "");
-      return requestErrorService.handleGenericErrors(call, request);
-    }
+  private Call getLoginPage() {
+    return routes.UserController.login();
   }
 
   /**
@@ -249,8 +214,7 @@ public class UserController extends Controller {
     logger.debug("{}", user);
 
     if (user == null) {
-      Call call = new Call("GET", "/login", "");
-      return requestErrorService.handleGenericErrors(call, request);
+      return requestErrorService.handleGenericErrors(getLoginPage(), request);
     }
 
     return ok(
@@ -297,8 +261,7 @@ public class UserController extends Controller {
     logger.debug("{}", user);
 
     if (user == null) {
-      Call call = new Call("GET", "/login", "");
-      return requestErrorService.handleGenericErrors(call, request);
+      return requestErrorService.handleGenericErrors(getLoginPage(), request);
     }
 
     return ok(
@@ -335,5 +298,14 @@ public class UserController extends Controller {
       Call call = new Call("GET", "login", "");
       return requestErrorService.handleGenericErrors(call, request);
     }
+  }
+
+  public Result loginPage(Http.Request request, boolean userLoggedIn) {
+    final var loginPage =
+        ok(
+            dot.cpp.login.views.html.login.render(
+                formFactory.form(LoginRequest.class), request, messagesApi.preferred(request)));
+
+    return userLoggedIn ? loginPage : CookieHelper.discardAuthorizationCookies(loginPage);
   }
 }

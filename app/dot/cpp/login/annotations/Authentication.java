@@ -14,7 +14,9 @@ import play.mvc.With;
 public @interface Authentication {
 
   /** This parameter will redirect to the URL. */
-  String redirectUrl();
+  String redirectUrl() default "/login";
 
   UserRole userRole();
+
+  int status() default -1;
 }
