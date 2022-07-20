@@ -4,19 +4,20 @@ GET         /find                         dot.cpp.login.controllers.UserControll
 GET         /generate-admin/:email        dot.cpp.login.controllers.UserController.generateAdmin(email: String)
 GET         /init                         dot.cpp.login.controllers.InitController.init()
 
-GET         /login                        dot.cpp.login.controllers.UserController.loginPage(request: Request, userLoggedIn: Boolean ?= true)
-POST        /login                        dot.cpp.login.controllers.UserController.login(request: Request)
-POST        /logout                       dot.cpp.login.controllers.UserController.logout(request: Request)
+GET         /login                        dot.cpp.login.controllers.LoginController.loginPage(request: Request, userLoggedIn: Boolean ?= true)
+POST        /login                        dot.cpp.login.controllers.LoginController.login(request: Request)
+POST        /logout                       dot.cpp.login.controllers.LoginController.logout(request: Request)
 
-GET         /forgot-password              dot.cpp.login.controllers.UserController.forgotPasswordPage(request: Request)
-POST        /forgot-password              dot.cpp.login.controllers.UserController.forgotPassword(request: Request)
-GET         /reset-password/:uuid         dot.cpp.login.controllers.UserController.resetPasswordPage(request: Request, uuid: String)
-POST        /reset-password/:uuid         dot.cpp.login.controllers.UserController.resetPassword(request: Request, uuid: String)
+GET         /accept-invite/:uuid          dot.cpp.login.controllers.LoginController.registerByInvitePage(request: Request, uuid: String)
+POST        /accept-invite/:uuid          dot.cpp.login.controllers.LoginController.registerByInvite(request: Request, uuid: String)
+
+GET         /forgot-password              dot.cpp.login.controllers.LoginController.forgotPasswordPage(request: Request)
+POST        /forgot-password              dot.cpp.login.controllers.LoginController.forgotPassword(request: Request)
+GET         /reset-password/:uuid         dot.cpp.login.controllers.LoginController.resetPasswordPage(request: Request, uuid: String)
+POST        /reset-password/:uuid         dot.cpp.login.controllers.LoginController.resetPassword(request: Request, uuid: String)
 
 GET         /invite-user                  dot.cpp.login.controllers.UserController.inviteUserPage(request: Request)
 POST        /invite-user                  dot.cpp.login.controllers.UserController.inviteUser(request: Request)
-GET         /accept-invite/:uuid          dot.cpp.login.controllers.UserController.registerByInvitePage(request: Request, uuid: String)
-POST        /accept-invite/:uuid          dot.cpp.login.controllers.UserController.registerByInvite(request: Request, uuid: String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET         /assets/*file                 controllers.Assets.versioned(path="/public", file: Asset)

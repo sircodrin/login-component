@@ -1,33 +1,17 @@
 package dot.cpp.login.controllers;
 
-import static dot.cpp.login.helpers.CookieHelper.getCookie;
-
-import com.google.gson.JsonObject;
 import dot.cpp.login.annotations.Authentication;
-import dot.cpp.login.attributes.GeneralAttributes;
-import dot.cpp.login.constants.Constants;
 import dot.cpp.login.enums.UserRole;
-import dot.cpp.login.exceptions.ApplicationException;
-import dot.cpp.login.exceptions.LoginException;
-import dot.cpp.login.exceptions.UserException;
-import dot.cpp.login.helpers.CookieHelper;
 import dot.cpp.login.models.user.entity.User;
-import dot.cpp.login.models.user.request.AcceptInviteRequest;
-import dot.cpp.login.models.user.request.ForgotPasswordRequest;
 import dot.cpp.login.models.user.request.InviteUserRequest;
-import dot.cpp.login.models.user.request.LoginRequest;
-import dot.cpp.login.models.user.request.ResetPasswordRequest;
-import dot.cpp.login.service.LoginService;
+import dot.cpp.login.service.EmailService;
 import dot.cpp.login.service.RequestErrorService;
 import dot.cpp.login.service.UserService;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import play.api.mvc.Call;
 import play.data.FormFactory;
 import play.i18n.MessagesApi;
-import play.libs.mailer.Email;
-import play.libs.mailer.MailerClient;
 import play.mvc.Controller;
 import play.mvc.Http;
 import play.mvc.Result;
@@ -37,75 +21,25 @@ public class UserController extends Controller {
   private static final Class<User> clazz = User.class;
 
   private final Logger logger = LoggerFactory.getLogger(getClass());
+
   private final FormFactory formFactory;
   private final MessagesApi messagesApi;
   private final UserService userService;
-  private final LoginService loginService;
+  private final EmailService emailService;
   private final RequestErrorService requestErrorService;
-  private final MailerClient mailerClient;
 
   @Inject
   public UserController(
       UserService userService,
-      LoginService loginService,
       RequestErrorService requestErrorService,
       FormFactory formFactory,
       MessagesApi messagesApi,
-      MailerClient mailerClient) {
+      EmailService emailService) {
     this.userService = userService;
-    this.loginService = loginService;
+    this.emailService = emailService;
     this.formFactory = formFactory;
     this.messagesApi = messagesApi;
-    this.mailerClient = mailerClient;
     this.requestErrorService = requestErrorService;
-  }
-
-  public void sendInviteEmail(String emailAddress, String uuid) {
-    Email email =
-        new Email()
-            .setSubject("dot.cpp Invite")
-            .setFrom("dot.cpp <alshopcontact@gmail.com>")
-            .addTo(emailAddress)
-            .setBodyText(
-                "Create your dot.cpp account by going to: http://localhost:9000/accept-invite/"
-                    + uuid);
-
-    mailerClient.send(email);
-  }
-
-  public void sendResetPasswordEmail(String emailAddress, String uuid) {
-    Email email =
-        new Email()
-            .setSubject("dot.cpp Reset Password")
-            .setFrom("dot.cpp <alshopcontact@gmail.com>")
-            .addTo(emailAddress)
-            .setBodyText(
-                "Reset your dot.cpp password by going to: http://localhost:9000/reset-password/"
-                    + uuid);
-
-    mailerClient.send(email);
-  }
-
-  public Result login(Http.Request request) {
-    var form = formFactory.form(LoginRequest.class).bindFromRequest(request);
-
-    if (form.hasErrors()) {
-      requestErrorService.handleFormErrorWithRefresh(request, form);
-      // todo needs different behaviour?
-    }
-
-    try {
-      final var loginRequest = form.get();
-      logger.debug("{}", request);
-      final String clientIp = request.remoteAddress();
-      logger.debug("{}", clientIp);
-      final var tokens =
-          loginService.login(loginRequest.getUsername(), loginRequest.getPassword(), clientIp);
-      return getOkWithCookies(tokens);
-    } catch (LoginException e) {
-      logger.error("", e);
-      return badRequest("bad");
-    }
   }
 
   public Result modifyUser(String id) {
@@ -144,160 +78,8 @@ public class UserController extends Controller {
     var email = form.get().getEmail();
     final String resetPasswordUuid =
         userService.generateUserWithInvitation(email, form.get().getUserRole());
-    sendInviteEmail(email, resetPasswordUuid);
+    emailService.sendInviteEmail(email, resetPasswordUuid);
 
     return ok("invited");
-  }
-
-  @Authentication(userRole = UserRole.ALL)
-  public Result logout(Http.Request request) {
-    logger.debug("{}", request);
-
-    try {
-      loginService.logout(request.attrs().get(GeneralAttributes.USER_ID));
-      return ok("logged out");
-    } catch (ApplicationException e) {
-      return requestErrorService.handleGenericErrors(getLoginPage(), request);
-    }
-  }
-
-  public Result forgotPasswordPage(Http.Request request) {
-    final var messages = messagesApi.preferred(request);
-    var form = formFactory.form(ForgotPasswordRequest.class);
-
-    return ok(dot.cpp.login.views.html.forgotPassword.render(form, request, messages));
-  }
-
-  public Result forgotPassword(Http.Request request) {
-    var form = formFactory.form(ForgotPasswordRequest.class).bindFromRequest(request);
-
-    if (form.hasErrors()) {
-      requestErrorService.handleFormErrorWithRefresh(request, form); // todo
-    }
-
-    try {
-      final String resetPasswordUuid = userService.generateResetPasswordUuid(form.get().getEmail());
-      sendResetPasswordEmail(form.get().getEmail(), resetPasswordUuid);
-    } catch (UserException e) {
-      logger.error("", e);
-      return requestErrorService.handleGenericErrors(getLoginPage(), request);
-    }
-
-    return ok("password reset");
-  }
-
-  private Call getLoginPage() {
-    return routes.UserController.login();
-  }
-
-  /**
-   * Activate account page for admin.
-   *
-   * @param request implicit request, must contain body with password and repeat password
-   * @return accept invitation page
-   */
-  public Result registerByInvitePage(Http.Request request, String resetPasswordUuid) {
-    final var messages = messagesApi.preferred(request);
-    final var form = formFactory.form(AcceptInviteRequest.class);
-    final var user = userService.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
-
-    logger.debug("{}", user);
-
-    if (user == null) {
-      return requestErrorService.handleGenericErrors(getLoginPage(), request);
-    }
-
-    return ok(
-        dot.cpp.login.views.html.acceptInvite.render(form, resetPasswordUuid, request, messages));
-  }
-
-  /**
-   * Activates account.
-   *
-   * @param request Request
-   * @return accept invitation
-   */
-  public Result registerByInvite(Http.Request request, String resetPasswordUuid) {
-    final var messages = messagesApi.preferred(request);
-    final var form = formFactory.form(AcceptInviteRequest.class).bindFromRequest(request);
-
-    if (form.hasErrors()) {
-      return requestErrorService.handleFormErrorWithRefresh(request, form);
-    }
-
-    var acceptInviteRequest = form.get();
-    logger.debug("acceptInviteRequest: {}", acceptInviteRequest);
-    logger.debug("messages: {}", messages);
-
-    try {
-      final var user = userService.acceptInvitation(acceptInviteRequest, resetPasswordUuid);
-      final String clientIp = request.remoteAddress();
-      final var tokens =
-          loginService.login(user.getUserName(), acceptInviteRequest.getPassword(), clientIp);
-      return getOkWithCookies(tokens);
-    } catch (Exception e) {
-      logger.error("", e);
-      return requestErrorService.handleGenericErrors(getLoginPage(), request);
-    }
-  }
-
-  public Result resetPasswordPage(Http.Request request, String resetPasswordUuid) {
-    final var messages = messagesApi.preferred(request);
-    final var form = formFactory.form(ResetPasswordRequest.class);
-    final var user = userService.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
-
-    logger.debug("{}", user);
-
-    if (user == null) {
-      return requestErrorService.handleGenericErrors(getLoginPage(), request);
-    }
-
-    return ok(
-        dot.cpp.login.views.html.resetPassword.render(form, resetPasswordUuid, request, messages));
-  }
-
-  /**
-   * Activates account.
-   *
-   * @param request Request
-   * @return accept invitation
-   */
-  public Result resetPassword(Http.Request request, String resetPasswordUuid) {
-    final var messages = messagesApi.preferred(request);
-    final var form = formFactory.form(ResetPasswordRequest.class).bindFromRequest(request);
-
-    if (form.hasErrors()) {
-      return requestErrorService.handleFormErrorWithRefresh(request, form);
-    }
-
-    var resetPasswordRequest = form.get();
-    logger.debug("resetPasswordRequest: {}", resetPasswordRequest);
-    logger.debug("messages: {}", messages);
-
-    try {
-      final var user = userService.resetPassword(resetPasswordRequest, resetPasswordUuid);
-      final var clientIp = request.remoteAddress();
-      final var tokens =
-          loginService.login(user.getUserName(), resetPasswordRequest.getPassword(), clientIp);
-      return getOkWithCookies(tokens);
-    } catch (Exception e) {
-      logger.error("", e);
-      return requestErrorService.handleGenericErrors(getLoginPage(), request);
-    }
-  }
-
-  public Result loginPage(Http.Request request, boolean userLoggedIn) {
-    final var loginPage =
-        ok(
-            dot.cpp.login.views.html.login.render(
-                formFactory.form(LoginRequest.class), request, messagesApi.preferred(request)));
-
-    return userLoggedIn ? loginPage : CookieHelper.discardAuthorizationCookies(loginPage);
-  }
-
-  private Result getOkWithCookies(JsonObject tokens) {
-    return ok().withCookies(
-            getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()),
-            getCookie(Constants.REFRESH_TOKEN, tokens.get(Constants.REFRESH_TOKEN).getAsString()));
   }
 }

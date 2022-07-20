@@ -8,13 +8,8 @@ import play.mvc.Http.Cookie;
 
 public class Session extends BaseEntity {
 
-  private String sessionId;
   private String userId;
-  private String sessionIp;
-
   private Long refreshExpiryDate;
-  private String userAgent;
-  private String tokenType;
   private String accessToken;
   private String refreshToken;
   private Long createTime;
@@ -52,44 +47,12 @@ public class Session extends BaseEntity {
     return new Gson().toJson(this);
   }
 
-  public String getSessionId() {
-    return sessionId;
-  }
-
-  public void setSessionId(String sessionId) {
-    this.sessionId = sessionId;
-  }
-
   public String getUserId() {
     return userId;
   }
 
   public void setUserId(String userId) {
     this.userId = userId;
-  }
-
-  public String getSessionIp() {
-    return sessionIp;
-  }
-
-  public void setSessionIp(String sessionIp) {
-    this.sessionIp = sessionIp;
-  }
-
-  public String getUserAgent() {
-    return userAgent;
-  }
-
-  public void setUserAgent(String userAgent) {
-    this.userAgent = userAgent;
-  }
-
-  public String getTokenType() {
-    return tokenType;
-  }
-
-  public void setTokenType(String tokenType) {
-    this.tokenType = tokenType;
   }
 
   public String getAccessToken() {

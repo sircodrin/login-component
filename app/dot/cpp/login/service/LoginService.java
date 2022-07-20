@@ -42,7 +42,7 @@ public class LoginService {
     key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
   }
 
-  public JsonObject login(String userName, String password, String clientIp) throws LoginException {
+  public JsonObject login(String userName, String password) throws LoginException {
     var user = userRepository.findByField("userName", userName, User.class);
 
     if (user == null) {
@@ -63,9 +63,6 @@ public class LoginService {
       session.setRefreshExpiryDate(expirationDateRefresh.getTime());
       session.setCreateTime(Instant.now().toEpochMilli());
       session.setUserId(user.getId().toString());
-      if (clientIp != null) {
-        session.setSessionIp(clientIp);
-      }
       sessionRepository.save(session);
 
       logger.debug("{}", session);
