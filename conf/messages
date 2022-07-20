@@ -1,0 +1,49 @@
+constraints.field.mandatory=This field is mandatory
+constraints.field.invalid=This field is invalid
+constraints.badRequest=Incorrect values, please try again!
+constraints.refreshToken.required=Token refresh is required
+constraints.refreshToken.invalid=The token refresh is invalid
+constraints.password.required=Password is required
+constraints.password.invalid=Password is invalid
+
+general.application.error=Application error. Please contact an administrator!
+general.duplicateRecord=There already exists an entity with the given details
+general.error=Please try again later!
+general.internal.server.error=System error
+general.internal.server.error.message=We are sorry, an error has occurred and the technical team has already been informed. Please try again later. Thank you for your understanding
+general.passwords.not.match=Passwords don't match!
+general.paymentsProvider.error=We are sorry, an error has occurred at the payments provider and the technical team has already been informed. Please try again later. Thank you for your understanding
+general.recordNotFound=Record not found!
+general.session.expired=Session expired! Please log in again!
+
+general.validation.error=There are errors with the data entered.
+general.validation.dob.in.future=The date of birth cannot be in the future.
+general.validation.growth.measurement.negative=The growth measurements must contain positive values.
+general.validation.growth.measurement.empty=At least one measurement field should not be empty!
+general.validation.date.in.future=The date cannot be in the future.
+general.validation.null.aefi.start.date.time=The start date and time of the adverse events must be specified.
+general.validation.late.adverse.events=The start date and time of the adverse events must precede all the other dates.
+
+userProfile.alreadyInitialized=We are sorry, this user does not have the status invited.
+userProfile.alreadyActive=This user is already active!
+userProfile.email.alreadyExists=A user with this email address already exists!
+userProfile.email.notFound=The provided email address could not be found
+userProfile.email.unavailable=Email is unavailable! Please set an email to activate the user
+userProfile.inactive=We are sorry, your account has been deactivated!
+userProfile.invited=The invitation has been sent to the user
+userProfile.loggedOut=We are sorry, you have been logged out!
+userProfile.newPasswordSameAsOld=The new password should be different from the old password!
+userProfile.newPasswordSuccess=The password was set successfully
+userProfile.notInvited=We are sorry, but this feature is available only to invited users!
+userProfile.not.existing=User not found
+userProfile.oldPassword.invalid=Current password is invalid!
+userProfile.pending.activation=User pending activation. Check your mail!
+userProfile.passwordUuid.alreadyUsed=We are sorry, this password reset code has already been used!
+userProfile.success.logout=You have been successfully logged out!
+userProfile.resetPassword=The password has been reset. Please check your email!
+userProfile.updated=User profile updated
+
+refreshToken.not.existing=For inactivity reasons, you have been logged out. Please log in again!
+
+vaccination.event.invalid.date=The vaccination date cannot be prior to the birthdate
+

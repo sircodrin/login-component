@@ -2,7 +2,7 @@ GET     /            dot.cpp.login.controllers.UserController.modifyUser(id: Str
 GET     /get         dot.cpp.login.controllers.UserController.get(id: String)
 GET     /find        dot.cpp.login.controllers.UserController.findByValue(field: String, value: String)
 GET     /save        dot.cpp.login.controllers.UserController.save()
-GET     /init        dot.cpp.repository.controllers.InitController.init()
+GET     /init        dot.cpp.login.controllers.InitController.init()
 
 GET     /login       dot.cpp.login.controllers.UserController.loginPage(request: Request, userLoggedIn: Boolean ?= true)
 POST    /login       dot.cpp.login.controllers.UserController.login(request: Request)

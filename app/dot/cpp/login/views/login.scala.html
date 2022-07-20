@@ -1,9 +1,10 @@
 @import dot.cpp.login.views.html.main
 @import dot.cpp.login.models.user.request.LoginRequest
 @import dot.cpp.login.constants.Patterns
+@import helper._
 @import play.mvc.Http.Request
 @(
-        form: play.data.Form[LoginRequest]
+        loginForm: play.data.Form[LoginRequest]
 )(implicit request: Request, messages: play.i18n.Messages)
 
 @main("Login") {
@@ -14,15 +15,20 @@
                 <h1 class="title">Welcome to dot.cpp</h1>
                 <p class="subtitle">Management</p>
 
-                @helper.form(action = dot.cpp.login.controllers.routes.UserController.login()) {
+                @* Flash shows updates to a page *@
+                @request.flash.asScala().data.map { case (name, value) =>
+                <div class="alert @name">@value</div>
+                }
+
+                @form(action = dot.cpp.login.controllers.routes.UserController.login()) {
                     <label>Username</label>
-                    @helper.inputText(
-                        field = form("username"),
+                    @inputText(
+                        field = loginForm("username"),
                         Symbol("required") -> "required",
                         Symbol("pattern") -> Patterns.NAME_OR_EMAIL)
 
                     <label>Password</label>
-                    @helper.inputPassword(field = form("password"),
+                    @inputPassword(field = loginForm("password"),
                         Symbol("required") -> "required")
                     <a href="@dot.cpp.login.controllers.routes.UserController.forgotPasswordPage()">
                         Forgotten password?</a>

@@ -45,9 +45,9 @@ public class AuthenticationAction extends Action<Authentication> {
     logger.debug("refreshToken: {}", refreshToken);
 
     final var constructedAccessToken = constructToken(authHeader, accessToken);
-    if (isInvalidJwt(constructedAccessToken)) {
+    if (isEmpty(constructedAccessToken) || isInvalidJwt(constructedAccessToken)) {
       logger.warn("Token invalid {}", constructedAccessToken);
-      return statusIfPresentOrResult(redirect(configuration.redirectUrl()));
+      return statusIfPresentOrResult(redirectWithError(messages));
     }
     logger.debug("{}", constructedAccessToken);
 
@@ -61,8 +61,7 @@ public class AuthenticationAction extends Action<Authentication> {
         return getSuccessfulResult(tokens);
       } catch (LoginException loginException) {
         logger.debug("{}", e.getMessage());
-        return CompletableFuture.completedFuture(
-            redirectWithError(messages, "general.session.expired"));
+        return statusIfPresentOrResult(redirectWithError(messages));
       }
     }
   }
@@ -94,8 +93,10 @@ public class AuthenticationAction extends Action<Authentication> {
     return CompletableFuture.completedFuture(result);
   }
 
-  private Result redirectWithError(Messages messages, String key) {
-    return redirect(configuration.redirectUrl()).flashing("alert-danger", messages.apply(key));
+  private Result redirectWithError(Messages messages) {
+    logger.debug("Session expired");
+    return redirect(configuration.redirectUrl())
+        .flashing("alert-danger", messages.apply("general.session.expired"));
   }
 
   private boolean isEmpty(String string) {
