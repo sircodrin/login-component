@@ -2,10 +2,10 @@ package dot.cpp.login.controllers;
 
 import static dot.cpp.login.helpers.CookieHelper.getCookie;
 
+import com.google.gson.JsonObject;
 import dot.cpp.login.annotations.Authentication;
 import dot.cpp.login.attributes.GeneralAttributes;
 import dot.cpp.login.constants.Constants;
-import dot.cpp.login.constants.UserStatus;
 import dot.cpp.login.enums.UserRole;
 import dot.cpp.login.exceptions.ApplicationException;
 import dot.cpp.login.exceptions.LoginException;
@@ -20,7 +20,6 @@ import dot.cpp.login.models.user.request.ResetPasswordRequest;
 import dot.cpp.login.service.LoginService;
 import dot.cpp.login.service.RequestErrorService;
 import dot.cpp.login.service.UserService;
-import java.util.UUID;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,10 +101,7 @@ public class UserController extends Controller {
       logger.debug("{}", clientIp);
       final var tokens =
           loginService.login(loginRequest.getUsername(), loginRequest.getPassword(), clientIp);
-      return ok(tokens.toString())
-          .withCookies(
-              getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
-      // todo cookie will be replaced with auth token with React frontend
+      return getOkWithCookies(tokens);
     } catch (LoginException e) {
       logger.error("", e);
       return badRequest("bad");
@@ -117,15 +113,8 @@ public class UserController extends Controller {
     return ok(user.toString());
   }
 
-  public Result save() {
-    final User user = new User();
-    user.setEmail("none@yahoo.com");
-    user.setUserName("john");
-    user.setRole(UserRole.ADMIN);
-    user.setStatus(UserStatus.ACTIVE);
-    user.setResetPasswordUuid(UUID.randomUUID().toString());
-    userService.save(user);
-    return ok(user.toString());
+  public Result generateAdmin(String email) {
+    return ok(userService.generateUserWithInvitation(email, UserRole.ADMIN));
   }
 
   public Result findByValue(String field, String value) {
@@ -154,7 +143,7 @@ public class UserController extends Controller {
 
     var email = form.get().getEmail();
     final String resetPasswordUuid =
-        userService.generateUserWithResetPassword(email, UserRole.ADMIN);
+        userService.generateUserWithInvitation(email, form.get().getUserRole());
     sendInviteEmail(email, resetPasswordUuid);
 
     return ok("invited");
@@ -243,14 +232,12 @@ public class UserController extends Controller {
     try {
       final var user = userService.acceptInvitation(acceptInviteRequest, resetPasswordUuid);
       final String clientIp = request.remoteAddress();
-      final var tokens = loginService.login(user.getUserName(), user.getPassword(), clientIp);
-      return ok(tokens.toString())
-          .withCookies(
-              getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
+      final var tokens =
+          loginService.login(user.getUserName(), acceptInviteRequest.getPassword(), clientIp);
+      return getOkWithCookies(tokens);
     } catch (Exception e) {
       logger.error("", e);
-      Call call = new Call("GET", "login", "");
-      return requestErrorService.handleGenericErrors(call, request);
+      return requestErrorService.handleGenericErrors(getLoginPage(), request);
     }
   }
 
@@ -292,9 +279,7 @@ public class UserController extends Controller {
       final var clientIp = request.remoteAddress();
       final var tokens =
           loginService.login(user.getUserName(), resetPasswordRequest.getPassword(), clientIp);
-      return ok(tokens.toString())
-          .withCookies(
-              getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
+      return getOkWithCookies(tokens);
     } catch (Exception e) {
       logger.error("", e);
       return requestErrorService.handleGenericErrors(getLoginPage(), request);
@@ -308,5 +293,11 @@ public class UserController extends Controller {
                 formFactory.form(LoginRequest.class), request, messagesApi.preferred(request)));
 
     return userLoggedIn ? loginPage : CookieHelper.discardAuthorizationCookies(loginPage);
+  }
+
+  private Result getOkWithCookies(JsonObject tokens) {
+    return ok().withCookies(
+            getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()),
+            getCookie(Constants.REFRESH_TOKEN, tokens.get(Constants.REFRESH_TOKEN).getAsString()));
   }
 }

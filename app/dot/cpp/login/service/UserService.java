@@ -19,18 +19,16 @@ import javax.inject.Singleton;
 
 @Singleton
 public class UserService extends EntityService<User> {
-  private final Config config;
   private final String passwordPepper;
   private final Argon2Function argon2 = Argon2Function.getInstance(1000, 4, 2, 32, Argon2.ID, 19);
 
   @Inject
   public UserService(UserRepository repository, Config config) {
     super(repository);
-    this.config = config;
     this.passwordPepper = config.getString("password.pepper");
   }
 
-  public String generateUserWithResetPassword(String email, UserRole userRole) {
+  public String generateUserWithInvitation(String email, UserRole userRole) {
     User user = new User();
     final String resetPasswordUuid = UUID.randomUUID().toString();
 
@@ -76,11 +74,7 @@ public class UserService extends EntityService<User> {
       throw new UserException(Error.NOT_FOUND);
     }
 
-    final Hash hashedPassword =
-        Password.hash(resetPasswordRequest.getPassword())
-            .addRandomSalt(32)
-            .addPepper(passwordPepper)
-            .with(argon2);
+    final Hash hashedPassword = getHashedPassword(resetPasswordRequest.getPassword());
 
     logger.debug("{}", hashedPassword);
     user.setPassword(hashedPassword.getResult());
@@ -121,11 +115,7 @@ public class UserService extends EntityService<User> {
 
     final var user = repository.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
 
-    final Hash hashedPassword =
-        Password.hash(acceptInviteRequest.getPassword())
-            .addRandomSalt(32)
-            .addPepper(passwordPepper)
-            .with(argon2);
+    final Hash hashedPassword = getHashedPassword(acceptInviteRequest.getPassword());
 
     user.setPassword(hashedPassword.getResult());
     user.setUserName(acceptInviteRequest.getUsername());
@@ -135,5 +125,9 @@ public class UserService extends EntityService<User> {
     logger.debug("{}", user);
     repository.save(user);
     return user;
+  }
+
+  private Hash getHashedPassword(String password) {
+    return Password.hash(password).addRandomSalt(16).addPepper(passwordPepper).with(argon2);
   }
 }

@@ -9,15 +9,13 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
-import javax.validation.constraints.Size;
 
 @Entity
 public class User extends BaseEntity {
 
   @NotBlank private String userName;
 
-  @Size(min = 160)
-  private String password;
+  @NotBlank private String password;
 
   @NotNull private UserRole role;
 

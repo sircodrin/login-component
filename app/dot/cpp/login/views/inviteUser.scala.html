@@ -29,7 +29,7 @@
                         Symbol("pattern") -> Patterns.EMAIL
                     )
                     @helper.select(
-                        field = form("role"),
+                        field = form("userRole"),
                         options = UserRole.values().map(v => (v.toString, v.getValue)).toSeq,
                         Symbol("required") -> "required"
                     )

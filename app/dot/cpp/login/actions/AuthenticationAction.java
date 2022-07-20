@@ -82,7 +82,7 @@ public class AuthenticationAction extends Action<Authentication> {
   }
 
   private boolean isInvalidJwt(String token) {
-    return token.matches(Patterns.JWT_TOKEN);
+    return !token.matches(Patterns.JWT_TOKEN);
   }
 
   private CompletableFuture<Result> statusIfPresentOrResult(Result result) {
