@@ -16,8 +16,8 @@ public class User extends BaseEntity {
 
   @NotBlank private String userName;
 
-  @Size(min = 160, max = 160)
-  @NotNull private String password;
+  @Size(min = 160)
+  private String password;
 
   @NotNull private UserRole role;
 

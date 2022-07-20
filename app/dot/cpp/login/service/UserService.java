@@ -92,10 +92,8 @@ public class UserService extends EntityService<User> {
   }
 
   public boolean checkPassword(String hashedPassword, String password) {
-    final String pepper = config.getString("password.pepper");
-
-    boolean verified = Password.check(password, hashedPassword).addPepper(pepper).with(argon2);
-
+    boolean verified =
+        Password.check(password, hashedPassword).addPepper(passwordPepper).with(argon2);
     logger.debug("verified {}", verified);
     return verified;
   }

@@ -20,6 +20,7 @@ import dot.cpp.login.models.user.request.ResetPasswordRequest;
 import dot.cpp.login.service.LoginService;
 import dot.cpp.login.service.RequestErrorService;
 import dot.cpp.login.service.UserService;
+import java.util.UUID;
 import javax.inject.Inject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,8 +122,8 @@ public class UserController extends Controller {
     user.setEmail("none@yahoo.com");
     user.setUserName("john");
     user.setRole(UserRole.ADMIN);
-    user.setPassword("liquidDnb!1");
     user.setStatus(UserStatus.ACTIVE);
+    user.setResetPasswordUuid(UUID.randomUUID().toString());
     userService.save(user);
     return ok(user.toString());
   }
@@ -289,7 +290,8 @@ public class UserController extends Controller {
     try {
       final var user = userService.resetPassword(resetPasswordRequest, resetPasswordUuid);
       final var clientIp = request.remoteAddress();
-      final var tokens = loginService.login(user.getUserName(), user.getPassword(), clientIp);
+      final var tokens =
+          loginService.login(user.getUserName(), resetPasswordRequest.getPassword(), clientIp);
       return ok(tokens.toString())
           .withCookies(
               getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
