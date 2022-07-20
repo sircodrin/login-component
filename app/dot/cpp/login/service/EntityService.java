@@ -32,7 +32,7 @@ public class EntityService<T extends BaseEntity> {
     try {
       repository.save(entity);
     } catch (Exception e) {
-      logger.error(e.getMessage());
+      logger.error("", e);
       // todo remove this or throw exception further, not sure if needed
     }
   }
@@ -41,7 +41,7 @@ public class EntityService<T extends BaseEntity> {
     try {
       repository.save(entity);
     } catch (Exception e) {
-      logger.error(e.getMessage());
+      logger.error("", e);
       // todo
     }
   }

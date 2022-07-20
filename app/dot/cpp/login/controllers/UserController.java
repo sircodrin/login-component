@@ -189,7 +189,7 @@ public class UserController extends Controller {
       final String resetPasswordUuid = userService.generateResetPasswordUuid(form.get().getEmail());
       sendResetPasswordEmail(form.get().getEmail(), resetPasswordUuid);
     } catch (UserException e) {
-      logger.error(e.getMessage());
+      logger.error("", e);
       return requestErrorService.handleGenericErrors(getLoginPage(), request);
     }
 
@@ -247,7 +247,7 @@ public class UserController extends Controller {
           .withCookies(
               getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
     } catch (Exception e) {
-      logger.error(e.getMessage());
+      logger.error("", e);
       Call call = new Call("GET", "login", "");
       return requestErrorService.handleGenericErrors(call, request);
     }
@@ -288,15 +288,14 @@ public class UserController extends Controller {
 
     try {
       final var user = userService.resetPassword(resetPasswordRequest, resetPasswordUuid);
-      final String clientIp = request.remoteAddress();
+      final var clientIp = request.remoteAddress();
       final var tokens = loginService.login(user.getUserName(), user.getPassword(), clientIp);
       return ok(tokens.toString())
           .withCookies(
               getCookie(Constants.ACCESS_TOKEN, tokens.get(Constants.ACCESS_TOKEN).getAsString()));
     } catch (Exception e) {
-      logger.error(e.getMessage());
-      Call call = new Call("GET", "login", "");
-      return requestErrorService.handleGenericErrors(call, request);
+      logger.error("", e);
+      return requestErrorService.handleGenericErrors(getLoginPage(), request);
     }
   }
 

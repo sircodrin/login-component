@@ -9,15 +9,15 @@ import java.util.List;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
 
 @Entity
 public class User extends BaseEntity {
 
   @NotBlank private String userName;
 
-  @NotNull
-  @Pattern(regexp = Patterns.ALPHA_PASS_MIN8, message = "constraints.field.invalid")
-  private String password;
+  @Size(min = 160, max = 160)
+  @NotNull private String password;
 
   @NotNull private UserRole role;
 
