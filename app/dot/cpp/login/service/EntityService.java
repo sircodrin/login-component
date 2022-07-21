@@ -16,16 +16,16 @@ public class EntityService<T extends BaseEntity> {
     this.repository = repository;
   }
 
-  public T findById(String id, Class<T> clazz) {
-    return repository.findById(id, clazz);
+  public T findById(Class<T> clazz, String id) {
+    return repository.findById(clazz, id);
   }
 
-  public T findByField(String field, String value, Class<T> clazz) {
-    return repository.findByField(field, value, clazz);
+  public T findByField(Class<T> clazz, String field, String value) {
+    return repository.findByField(clazz, field, value);
   }
 
-  public List<T> listByField(String field, String value, Class<T> clazz) {
-    return repository.listByField(field, value, clazz);
+  public List<T> listByField(Class<T> clazz, String field, String value) {
+    return repository.listByField(clazz, field, value);
   }
 
   public void save(T entity) {

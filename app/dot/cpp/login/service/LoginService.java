@@ -43,7 +43,7 @@ public class LoginService {
   }
 
   public JsonObject login(String userName, String password) throws LoginException {
-    var user = userRepository.findByField("userName", userName, User.class);
+    var user = userRepository.findByField(User.class, "userName", userName);
 
     if (user == null) {
       throw new LoginException(Error.NOT_FOUND);
@@ -119,7 +119,7 @@ public class LoginService {
 
   public JsonObject refreshTokens(String refreshToken) throws LoginException {
     final Session session =
-        sessionRepository.findByField("refreshToken", refreshToken, Session.class);
+        sessionRepository.findByField(Session.class, "refreshToken", refreshToken);
 
     if (session == null) {
       throw new LoginException(Error.SESSION_NOT_FOUND);
@@ -148,7 +148,7 @@ public class LoginService {
   }
 
   public void logout(String userId) throws ApplicationException {
-    final var session = sessionRepository.findByField("userId", userId, Session.class);
+    final var session = sessionRepository.findByField(Session.class, "userId", userId);
 
     if (session == null) {
       throw new ApplicationException(Error.SESSION_NOT_FOUND);

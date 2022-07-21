@@ -45,7 +45,7 @@ public class UserService extends EntityService<User> {
   }
 
   public String generateResetPasswordUuid(String email) throws UserException {
-    final User user = repository.findByField("email", email, User.class);
+    final User user = repository.findByField(User.class, "email", email);
 
     if (user == null) {
       throw new UserException(Error.USER_EMAIL_NOT_FOUND);
@@ -68,7 +68,7 @@ public class UserService extends EntityService<User> {
     logger.debug("{}", resetPasswordRequest);
     logger.debug("{}", resetPasswordUuid);
 
-    final var user = repository.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
+    final var user = repository.findByField(User.class, "resetPasswordUuid", resetPasswordUuid);
 
     if (user == null) {
       throw new UserException(Error.NOT_FOUND);
@@ -93,7 +93,7 @@ public class UserService extends EntityService<User> {
   }
 
   public void userIsActiveAndHasRole(String userId, UserRole userRole) throws UserException {
-    final var user = repository.findById(userId, User.class);
+    final var user = repository.findById(User.class, userId);
 
     if (user == null) {
       throw new UserException(Error.NOT_FOUND);
@@ -113,7 +113,7 @@ public class UserService extends EntityService<User> {
     logger.debug("{}", acceptInviteRequest);
     logger.debug("{}", resetPasswordUuid);
 
-    final var user = repository.findByField("resetPasswordUuid", resetPasswordUuid, User.class);
+    final var user = repository.findByField(User.class, "resetPasswordUuid", resetPasswordUuid);
 
     final Hash hashedPassword = getHashedPassword(acceptInviteRequest.getPassword());
 
