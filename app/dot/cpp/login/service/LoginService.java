@@ -148,7 +148,7 @@ public class LoginService {
   }
 
   public void logout(String userId) throws ApplicationException {
-    final Session session = sessionRepository.findByField("userId", userId, Session.class);
+    final var session = sessionRepository.findByField("userId", userId, Session.class);
 
     if (session == null) {
       throw new ApplicationException(Error.SESSION_NOT_FOUND);
