@@ -5,7 +5,6 @@ import static dot.cpp.login.helpers.CookieHelper.getCookie;
 import com.google.gson.JsonObject;
 import dot.cpp.core.constant.Patterns;
 import dot.cpp.login.annotations.Authentication;
-import dot.cpp.login.attributes.GeneralAttributes;
 import dot.cpp.login.constants.Constants;
 import dot.cpp.login.exceptions.LoginException;
 import dot.cpp.login.exceptions.UserException;
