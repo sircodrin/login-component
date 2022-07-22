@@ -15,7 +15,6 @@ libraryDependencies ++= Seq(
   "com.google.code.gson" % "gson" % "2.8.2",
   "com.typesafe.play" %% "play-mailer" % "8.0.1",
   "com.typesafe.play" %% "play-mailer-guice" % "8.0.1",
-  "dot.cpp" %% "repository-component" % "1.0",
   "dot.cpp" %% "core-component" % "1.0",
   "it.unifi.cerm" %% "play-morphia" % "1.0",
   "io.jsonwebtoken" % "jjwt-api" % "0.11.5",

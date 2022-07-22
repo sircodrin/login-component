@@ -5,6 +5,7 @@ import com.password4j.Hash;
 import com.password4j.Password;
 import com.password4j.types.Argon2;
 import com.typesafe.config.Config;
+import dot.cpp.core.services.EntityService;
 import dot.cpp.login.constants.Error;
 import dot.cpp.login.constants.UserStatus;
 import dot.cpp.login.enums.UserRole;

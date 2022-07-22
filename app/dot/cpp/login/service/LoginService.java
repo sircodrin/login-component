@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import dot.cpp.login.constants.Constants;
 import dot.cpp.login.constants.Error;
 import dot.cpp.login.enums.UserRole;
-import dot.cpp.login.exceptions.ApplicationException;
 import dot.cpp.login.exceptions.LoginException;
 import dot.cpp.login.exceptions.UserException;
 import dot.cpp.login.models.session.entity.Session;
@@ -147,11 +146,10 @@ public class LoginService {
     return tokens;
   }
 
-  public void logout(String userId) throws ApplicationException {
+  public void logout(String userId) throws UserException {
     final var session = sessionRepository.findByField(Session.class, "userId", userId);
-
     if (session == null) {
-      throw new ApplicationException(Error.SESSION_NOT_FOUND);
+      throw new UserException(Error.SESSION_NOT_FOUND);
     }
 
     sessionRepository.delete(session);
