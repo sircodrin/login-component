@@ -3,7 +3,7 @@ package dot.cpp.login.actions;
 import static dot.cpp.login.helpers.CookieHelper.getCookie;
 
 import com.google.gson.JsonObject;
-import dot.cpp.core.constant.Patterns;
+import dot.cpp.core.constants.Patterns;
 import dot.cpp.login.annotations.Authentication;
 import dot.cpp.login.constants.Constants;
 import dot.cpp.login.exceptions.LoginException;

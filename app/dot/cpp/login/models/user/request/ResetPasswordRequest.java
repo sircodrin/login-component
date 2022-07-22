@@ -1,7 +1,7 @@
 package dot.cpp.login.models.user.request;
 
 import com.google.gson.Gson;
-import dot.cpp.core.constant.Patterns;
+import dot.cpp.core.constants.Patterns;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Validatable;

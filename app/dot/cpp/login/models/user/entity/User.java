@@ -1,7 +1,7 @@
 package dot.cpp.login.models.user.entity;
 
 import dev.morphia.annotations.Entity;
-import dot.cpp.core.constant.Patterns;
+import dot.cpp.core.constants.Patterns;
 import dot.cpp.login.constants.UserStatus;
 import dot.cpp.login.enums.UserRole;
 import dot.cpp.repository.models.BaseEntity;
