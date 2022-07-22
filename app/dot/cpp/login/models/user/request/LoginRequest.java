@@ -1,9 +1,9 @@
 package dot.cpp.login.models.user.request;
 
-import com.google.gson.Gson;
-import dot.cpp.login.constants.Patterns;
+import dot.cpp.core.constant.Patterns;
 import javax.validation.constraints.NotBlank;
 import play.data.validation.Constraints.Pattern;
+import play.libs.Json;
 
 public class LoginRequest {
 
@@ -16,7 +16,7 @@ public class LoginRequest {
 
   @Override
   public String toString() {
-    return new Gson().toJson(this); // todo check this
+    return Json.stringify(Json.toJson(this));
   }
 
   public String getPassword() {
@@ -32,6 +32,6 @@ public class LoginRequest {
   }
 
   public void setUsername(String username) {
-    this.username = username; // todo trimming
+    this.username = username.trim();
   }
 }

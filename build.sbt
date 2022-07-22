@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-mailer" % "8.0.1",
   "com.typesafe.play" %% "play-mailer-guice" % "8.0.1",
   "dot.cpp" %% "repository-component" % "1.0",
+  "dot.cpp" %% "core-component" % "1.0",
   "it.unifi.cerm" %% "play-morphia" % "1.0",
   "io.jsonwebtoken" % "jjwt-api" % "0.11.5",
   "io.jsonwebtoken" % "jjwt-impl" % "0.11.5",

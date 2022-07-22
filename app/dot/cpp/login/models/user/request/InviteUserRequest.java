@@ -1,8 +1,8 @@
 package dot.cpp.login.models.user.request;
 
 import com.google.gson.Gson;
+import dot.cpp.core.constant.Patterns;
 import dot.cpp.login.enums.UserRole;
-import dot.cpp.repository.constants.Patterns;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import play.data.validation.Constraints.Validatable;

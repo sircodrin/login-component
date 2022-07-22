@@ -1,19 +1,20 @@
 package dot.cpp.login.controllers;
 
 import dot.cpp.login.models.user.entity.User;
+import dot.cpp.repository.controllers.RepositoryController;
 import java.util.List;
 import javax.inject.Inject;
 import play.mvc.Result;
 
 public class InitController {
-  private final dot.cpp.repository.controllers.InitController initRepositoryController;
+  private final RepositoryController repositoryController;
 
   @Inject
-  public InitController(dot.cpp.repository.controllers.InitController initRepositoryController) {
-    this.initRepositoryController = initRepositoryController;
+  public InitController(RepositoryController repositoryController) {
+    this.repositoryController = repositoryController;
   }
 
   public Result init() {
-    return initRepositoryController.init(List.of(User.class));
+    return repositoryController.init(List.of(User.class));
   }
 }

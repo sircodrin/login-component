@@ -1,7 +1,7 @@
 package dot.cpp.login.models.user.request;
 
 import com.google.gson.Gson;
-import dot.cpp.repository.constants.Patterns;
+import dot.cpp.core.constant.Patterns;
 import play.data.validation.Constraints;
 import play.data.validation.Constraints.Pattern;
 import play.data.validation.Constraints.Validatable;
@@ -10,11 +10,11 @@ import play.data.validation.Constraints.Validate;
 @Validate
 public class ResetPasswordRequest implements Validatable<String> {
 
-  @Pattern(value = Patterns.ALPHA_PASS_MIN8, message = "constraints.field.invalid")
+  @Pattern(value = Patterns.PASSWORD, message = "constraints.field.invalid")
   @Constraints.MinLength(value = 1, message = "constraints.field.invalid")
   private String password;
 
-  @Pattern(value = Patterns.ALPHA_PASS_MIN8, message = "constraints.field.invalid")
+  @Pattern(value = Patterns.PASSWORD, message = "constraints.field.invalid")
   @Constraints.MinLength(value = 1, message = "constraints.field.invalid")
   private String confirmPassword;
 
