@@ -53,7 +53,7 @@ public class AuthenticationAction extends Action<Authentication> {
 
     try {
       final String userId = loginService.authorizeRequest(accessToken, configuration.userRole());
-      return delegate.call(request.addAttr(GeneralAttributes.USER_ID, userId));
+      return delegate.call(request.addAttr(Constants.USER_ID, userId));
     } catch (LoginException | UserException e) {
       try {
         final JsonObject tokens = loginService.refreshTokens(refreshToken);
